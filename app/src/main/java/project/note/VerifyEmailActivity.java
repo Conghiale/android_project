@@ -68,7 +68,7 @@ public class VerifyEmailActivity extends AppCompatActivity {
     skipA.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        startActivity(new Intent(VerifyEmailActivity.this, MainActivity.class));
+        startActivity(new Intent(VerifyEmailActivity.this, ListNote.class));
       }
     });
   }
@@ -128,7 +128,7 @@ public class VerifyEmailActivity extends AppCompatActivity {
                     editor.putBoolean("activated", true);
                     editor.apply();
 
-                    startActivity(new Intent(VerifyEmailActivity.this, MainActivity.class));
+                    startActivity(new Intent(VerifyEmailActivity.this, ListNote.class));
                   }
                   else {
                     notifyTextView.setText(R.string.verify_failed);

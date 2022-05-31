@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,10 +27,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.IOException;
 import java.util.Calendar;
 
+import Model.User;
 import project.note.databinding.AddNoteBinding;
 import Model.Note;
 
 public class AddNote extends AppCompatActivity {
+    private User userCurrent;
+
+    private SharedPreferences sharedPreferences;
 
     private AddNoteBinding addNoteBinding;
     private static final int MY_REQUEST_CODE = 1000;
@@ -59,11 +65,32 @@ public class AddNote extends AppCompatActivity {
         super.onCreate (savedInstanceState);
         addNoteBinding = AddNoteBinding.inflate (getLayoutInflater ());
         setContentView (addNoteBinding.getRoot ());
+
+        sharedPreferences = getSharedPreferences("user", Context.MODE_PRIVATE);
+
+        userCurrent = getUser();
+
+        if (userCurrent == null) {
+            startActivity(new Intent(AddNote.this, SignInActivity.class));
+        }
         
         setDay();
         setTime();
         setButton();
         addNoteBinding.btnChoseImage.setOnClickListener (view -> onClickRequesPermission());
+    }
+
+    private User getUser() {
+        if ( !sharedPreferences.contains("username") ) {
+            return null;
+        }
+
+        String username = sharedPreferences.getString("username", "");
+        String password = sharedPreferences.getString("password", "");
+        String type = sharedPreferences.getString("type", "");
+        boolean activated = sharedPreferences.getBoolean("activated", false);
+
+        return new User(username, password, type, activated);
     }
 
     private void setDay() {

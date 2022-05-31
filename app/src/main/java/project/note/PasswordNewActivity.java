@@ -117,7 +117,7 @@ public class PasswordNewActivity extends AppCompatActivity {
                             .addOnSuccessListener(new OnSuccessListener() {
                               @Override
                               public void onSuccess(Object o) {
-                                startActivity(new Intent(PasswordNewActivity.this, MainActivity.class));
+                                startActivity(new Intent(PasswordNewActivity.this, UserActivity.class));
                                 finish();
                               }
                             });

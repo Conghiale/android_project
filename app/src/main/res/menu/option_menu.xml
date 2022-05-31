@@ -22,6 +22,12 @@
         app:showAsAction="always"/>
 
     <item
+        android:id="@+id/profileItem"
+        android:title="Profile"
+        android:icon="@drawable/ic_account_circle_24"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/deleteDoneItem"
         android:title="Remove Done"
         app:showAsAction="never"/>

@@ -76,6 +76,12 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         notifyTextView.setText(R.string.loading);
 
         String code = String.valueOf(codeEditText.getText()).trim();
+
+        if ( code.isEmpty () ) {
+            notifyTextView.setText ("OTP is requirement!");
+            return;
+        }
+
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, code);
         signInWithPhoneAuthCredential(credential);
       }
@@ -91,7 +97,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     skipA.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        startActivity(new Intent(VerifyPhoneActivity.this, MainActivity.class));
+        startActivity(new Intent(VerifyPhoneActivity.this, ListNote.class));
       }
     });
   }
@@ -136,6 +142,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
 
                       @Override
                       public void onVerificationFailed(@NonNull FirebaseException e) {
+                          notifyTextView.setText ("+84 " + phoneNumber);
                       }
 
                       @Override
@@ -176,7 +183,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                                             editor.putBoolean("activated", true);
                                             editor.apply();
 
-                                            startActivity(new Intent(VerifyPhoneActivity.this, MainActivity.class));
+                                            startActivity(new Intent(VerifyPhoneActivity.this, ListNote.class));
                                             finish();
                                           }
                                         });

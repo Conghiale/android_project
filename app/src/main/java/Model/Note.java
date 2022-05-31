@@ -16,7 +16,7 @@ public class Note implements Parcelable {
         this.time = time;
         this.content = content;
         this.id = "";
-        this.done = true;
+        this.done = false;
     }
 
     protected Note(Parcel in) {

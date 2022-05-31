@@ -1,7 +1,9 @@
 package project.note;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -21,20 +23,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import Adapter.NoteAdapter;
+import Model.User;
 import project.note.databinding.ListNotesBinding;
 import Model.Note;
 import project.note.databinding.ListNotesBinding;
 
 public class ListNote extends AppCompatActivity implements NoteAdapter.setOnItemClickListener{
+    private User userCurrent;
+
+    private SharedPreferences sharedPreferences;
 
     private ListNotesBinding listNotesBinding;
 
@@ -44,7 +54,7 @@ public class ListNote extends AppCompatActivity implements NoteAdapter.setOnItem
 
 
     private FirebaseFirestore firestore = FirebaseFirestore.getInstance ();
-    private CollectionReference ref = firestore.collection ("Notes");
+    public static CollectionReference ref;
 
     private int pos = -1;
 
@@ -53,6 +63,18 @@ public class ListNote extends AppCompatActivity implements NoteAdapter.setOnItem
         super.onCreate (savedInstanceState);
         listNotesBinding = ListNotesBinding.inflate (getLayoutInflater ());
         setContentView (listNotesBinding.getRoot ());
+
+        sharedPreferences = getSharedPreferences("user", Context.MODE_PRIVATE);
+
+        userCurrent = getUser();
+
+        if (userCurrent == null) {
+            startActivity(new Intent(ListNote.this, SignInActivity.class));
+            finish ();
+            return;
+        }
+
+        ref = firestore.collection (userCurrent.getUsername ());
 
         adapter = initViews();
         getDataFromFirebase();
@@ -75,30 +97,39 @@ public class ListNote extends AppCompatActivity implements NoteAdapter.setOnItem
         return myAdapter;
     }
 
-    private void getDataFromFirebase() {
-        ref.get ().addOnCompleteListener (task -> {
-            if(task.isSuccessful () && !task.getResult ().isEmpty ()){
-                for(QueryDocumentSnapshot documentSnapshot : task.getResult ()){
-                    Note note = new Note ();
-                    note.setTitle (documentSnapshot.get ("Title").toString ());
-                    note.setDay (documentSnapshot.get ("Day").toString ());
-                    note.setTime (documentSnapshot.get ("Time").toString ());
-                    note.setContent (documentSnapshot.get ("Content").toString ());
-                    note.setCheck ((Boolean) documentSnapshot.get ("Check"));
-                    note.setId (documentSnapshot.getId ());
+    private User getUser() {
+        if ( !sharedPreferences.contains("username") ) {
+            return null;
+        }
 
-                    listData.add (note);
-                    adapter.notifyDataSetChanged ();
-                }
-            }
-        })
-                .addOnSuccessListener (queryDocumentSnapshots -> Log.e ("TAG", "Get Data Success."))
-                .addOnFailureListener (new OnFailureListener () {
+        String username = sharedPreferences.getString("username", "");
+        String password = sharedPreferences.getString("password", "");
+        String type = sharedPreferences.getString("type", "");
+        boolean activated = sharedPreferences.getBoolean("activated", false);
+
+        return new User(username, password, type, activated);
+    }
+
+    private void getDataFromFirebase() {
+        ref.get ()
+                .addOnSuccessListener (new OnSuccessListener<QuerySnapshot> () {
                     @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e ("TAG", "Get Data Failure: " + e);
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        for(QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                            Note note = new Note ();
+                            note.setTitle (documentSnapshot.get ("Title").toString ());
+                            note.setDay (documentSnapshot.get ("Day").toString ());
+                            note.setTime (documentSnapshot.get ("Time").toString ());
+                            note.setContent (documentSnapshot.get ("Content").toString ());
+                            note.setCheck ((Boolean) documentSnapshot.get ("Check"));
+                            note.setId (documentSnapshot.getId ());
+
+                            listData.add (note);
+                            adapter.notifyDataSetChanged ();
+                        }
                     }
                 });
+//
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -129,6 +160,9 @@ public class ListNote extends AppCompatActivity implements NoteAdapter.setOnItem
                 return true;
             case R.id.deleteAllItem:
                 adapter.showDialog (-1);
+                return true;
+            case R.id.profileItem:
+                startActivity (new Intent (this, UserActivity.class));
                 return true;
             default:
                 Toast.makeText(this, "default", Toast.LENGTH_SHORT).show();

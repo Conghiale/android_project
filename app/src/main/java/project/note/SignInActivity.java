@@ -141,7 +141,7 @@ public class SignInActivity extends AppCompatActivity {
                   editor.putBoolean("activated", Objects.requireNonNull(firebaseAuth.getCurrentUser()).isEmailVerified());
                   editor.apply();
 
-                  startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                  startActivity(new Intent(SignInActivity.this, ListNote.class));
                   finish();
                 }
               })
@@ -178,7 +178,7 @@ public class SignInActivity extends AppCompatActivity {
                     editor.putBoolean("activated", user.isActivated());
                     editor.apply();
 
-                    startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                    startActivity(new Intent(SignInActivity.this, ListNote.class));
                     finish();
                   }
                 }

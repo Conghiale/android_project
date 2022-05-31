@@ -132,7 +132,7 @@ public class PasswordChangeActivity extends AppCompatActivity {
                                 editor.apply();
 
 
-                                startActivity(new Intent(PasswordChangeActivity.this, MainActivity.class));
+                                startActivity(new Intent(PasswordChangeActivity.this, UserActivity.class));
                                 finish();
                               }
                             });
@@ -151,7 +151,7 @@ public class PasswordChangeActivity extends AppCompatActivity {
                   editor.putString("password", newPassword);
                   editor.apply();
 
-                  startActivity(new Intent(PasswordChangeActivity.this, MainActivity.class));
+                  startActivity(new Intent(PasswordChangeActivity.this, UserActivity.class));
                   finish();
                 }
               });

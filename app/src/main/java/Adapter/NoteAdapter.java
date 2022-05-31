@@ -25,6 +25,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import project.note.ListNote;
 import project.note.R;
 import Model.Note;
 
@@ -38,8 +39,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     private ArrayList<Note> listNote;
     private ArrayList<Note> tmp;
 
-    private FirebaseFirestore firestore = FirebaseFirestore.getInstance ();
-    private CollectionReference ref = firestore.collection ("Notes");
+    //private FirebaseFirestore firestore = FirebaseFirestore.getInstance ();
+    //private CollectionReference ref = firestore.collection ("Notes");
 
     private setOnItemClickListener listener;
 
@@ -87,7 +88,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
 
     public void remove(int i) {
         String id = listNote.get (i).getId ();
-        ref.document (id).delete ();
+        ListNote.ref.document (id).delete ();
 
         listNote.remove(i);
         notifyItemRemoved(i);
@@ -106,10 +107,10 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         notifyDataSetChanged ();
         Log.e ("TAG30", "removeAll: ");
 
-        ref.get ()
+        ListNote.ref.get ()
                 .addOnSuccessListener (queryDocumentSnapshots -> {
                     for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        ref.document (documentSnapshot.getId ()).delete ();
+                        ListNote.ref.document (documentSnapshot.getId ()).delete ();
                     }
                 })
         .addOnFailureListener (e -> Log.e ("TAG", "Remove Data Failure." + e));
@@ -167,7 +168,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         itemNote.put ("Content", note.getContent ());
         itemNote.put ("Check", note.isCheck ());
 
-        ref.add (itemNote)
+        ListNote.ref.add (itemNote)
         .addOnSuccessListener (documentReference -> {
             Log.e ("TAG14", "Push Data Success. ID: " + documentReference.getId ());
             note.setId (documentReference.getId ());
@@ -199,7 +200,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         upNote.put ("Content", note.getContent ());
         //ImageView
 
-        ref.document (note.getId ()).update (upNote)
+        ListNote.ref.document (note.getId ()).update (upNote)
         .addOnSuccessListener (unused -> Log.e ("TAG", "Update Data Success."))
         .addOnFailureListener (e -> Log.e ("TAG", "Update Data Failure: " + e));
 
@@ -208,7 +209,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     private void updateDataToFirebase(int position) {
         //ImageView
         Log.e ("TAG13", "ID: " + listNote.get (position).getId ());
-        ref.document (listNote.get (position).getId ()).update ("Check", listNote.get (position).isCheck ());
+        ListNote.ref.document (listNote.get (position).getId ()).update ("Check", listNote.get (position).isCheck ());
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
