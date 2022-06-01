@@ -75,8 +75,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         holder.cbDone.setChecked (note.isCheck ());
         if (!note.getImage ().isEmpty ()){
             Log.e ("TAG200", "image: " + note.getImage ());
-            Bitmap bitmap = BitmapFactory.decodeFile (note.getImage ());
-            holder.ivPicture.setImageBitmap (bitmap);
+            Uri uri = Uri.parse (note.getImage ());
+            holder.ivPicture.setImageURI (uri);
         }
     }
 
