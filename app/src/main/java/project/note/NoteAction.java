@@ -102,16 +102,16 @@ public class NoteAction {
             for (int j = startSort; j < size-1;j++) {
                 int cDay = compareDay (list.get (j).getDay (), list.get (j+1).getDay ());
 
-                if(cDay == 1){
+                if(cDay == -1){
                     permutationNote (list.get (j), list.get (j+1));
                     isSort = true;
                 }
-                else if(cDay == -1){
+                else if(cDay == 1){
                     continue;
                 }
                 else {
                     int cTime = compareTime (list.get (j).getTime (), list.get (j+1).getTime ());
-                    if(cTime == 1){
+                    if(cTime == -1){
                         permutationNote (list.get (j), list.get (j+1));
                         isSort = true;
                     }else{
