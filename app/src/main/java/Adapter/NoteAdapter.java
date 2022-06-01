@@ -1,11 +1,17 @@
 package Adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,12 +30,14 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import project.note.ListNote;
+import project.note.NoteAction;
 import project.note.R;
 import Model.Note;
 
-public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> {
+public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> implements Filterable {
 
     public interface setOnItemClickListener{
         void onItemClickListener(Note note, int position, View view);
@@ -37,16 +45,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
 
     private Context context;
     private ArrayList<Note> listNote;
+    private ArrayList<Note> listNoteOld;
     private ArrayList<Note> tmp;
-
-    //private FirebaseFirestore firestore = FirebaseFirestore.getInstance ();
-    //private CollectionReference ref = firestore.collection ("Notes");
 
     private setOnItemClickListener listener;
 
     public NoteAdapter(Context context, ArrayList<Note> listNote) {
         this.context = context;
         this.listNote = listNote;
+        this.listNoteOld = listNote;
         this.tmp = new ArrayList<> ();
     }
 
@@ -66,8 +73,11 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         holder.tvDayTime.setText (note.getDay () + " " + note.getTime ());
         holder.tvContent.setText (note.getContent ());
         holder.cbDone.setChecked (note.isCheck ());
-
-        //ImageView
+        if (!note.getImage ().isEmpty ()){
+            Log.e ("TAG200", "image: " + note.getImage ());
+            Bitmap bitmap = BitmapFactory.decodeFile (note.getImage ());
+            holder.ivPicture.setImageBitmap (bitmap);
+        }
     }
 
     @Override
@@ -80,10 +90,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     }
 
     public void add(@Nullable Note note) {
+
+        listNote.add(note);
+        NoteAction.sortDayTime (listNote);
+        notifyDataSetChanged ();
         //Push Data to Firebase
         pushDataToFirebase(note);
-        listNote.add(note);
-        notifyItemInserted(listNote.size() - 1);
     }
 
     public void remove(int i) {
@@ -148,30 +160,41 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         }
     }
 
-    public void updateData(Note upNote, int pos){
+    public void editData(Note upNote, int pos){
         listNote.get (pos).setTitle (upNote.getTitle ());
         listNote.get (pos).setDay (upNote.getDay ());
         listNote.get (pos).setTime (upNote.getTime ());
         listNote.get (pos).setContent (upNote.getContent ());
         //ImageView
 
-        notifyItemChanged (pos);
+        NoteAction.sortDayTime (listNote);
+        Log.e ("TAG20", "editData: read sortDayTime.");
+        notifyDataSetChanged ();
+        //notifyItemChanged (pos);
         updateDataToFirebase (upNote);
     }
 
     private void pushDataToFirebase(Note note) {
-        Log.e ("TAG", "pushDataToFirebase: ");
         HashMap<String, Object> itemNote = new HashMap<> ();
         itemNote.put ("Title", note.getTitle ());
         itemNote.put ("Day", note.getDay ());
         itemNote.put ("Time", note.getTime ());
         itemNote.put ("Content", note.getContent ());
-        itemNote.put ("Check", note.isCheck ());
+        itemNote.put ("Done", note.isCheck ());
+        itemNote.put ("Pin", note.isPin ());
+        itemNote.put ("ID", note.getId ());
+        itemNote.put ("Image", note.getImage ());
 
         ListNote.ref.add (itemNote)
         .addOnSuccessListener (documentReference -> {
-            Log.e ("TAG14", "Push Data Success. ID: " + documentReference.getId ());
-            note.setId (documentReference.getId ());
+            Log.e ("TAG", "Push Data Success.");
+            if(note.getId () == null){
+                note.setId (documentReference.getId ());
+                HashMap<String, Object> itemID = new HashMap<> ();
+                itemID.put ("ID", note.getId ());
+
+                ListNote.ref.document (note.getId ()).update (itemID);
+            }
         })
         .addOnFailureListener (e -> Log.e ("TAG", "Push Data Failure." + e));
     }
@@ -206,8 +229,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
 
     }
 
-    private void updateDataToFirebase(int position) {
-        //ImageView
+    private void updateDone(int position) {
         Log.e ("TAG13", "ID: " + listNote.get (position).getId ());
         ListNote.ref.document (listNote.get (position).getId ()).update ("Check", listNote.get (position).isCheck ());
     }
@@ -228,7 +250,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
             cbDone.setOnCheckedChangeListener ((compoundButton, b) -> {
                 listNote.get (getAdapterPosition ()).setCheck (b);
                 Log.e ("TAG20", "Note: " + listNote.get (getAdapterPosition()));
-                updateDataToFirebase(getAdapterPosition ());
+                updateDone(getAdapterPosition ());
             });
 
             itemView.setOnClickListener (view -> {
@@ -236,5 +258,38 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
                     listener.onItemClickListener (listNote.get (getAdapterPosition ()), getAdapterPosition (), view);
             });
         }
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter () {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+
+                String strSearch = charSequence.toString ();
+                if(strSearch.isEmpty ())
+                    listNote = listNoteOld;
+                else{
+                    ArrayList<Note> list = new ArrayList<> ();
+                    for(Note note : listNoteOld){
+                        if(note.getTitle ().toLowerCase().contains (strSearch.toLowerCase ()) ||
+                                note.getContent ().toLowerCase().contains (strSearch.toLowerCase ())){
+                            list.add (note);
+                        }
+                    }
+                    listNote = list;
+                }
+
+                FilterResults filterResults = new FilterResults ();
+                filterResults.values = listNote;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                listNote = (ArrayList<Note>) filterResults.values;
+                notifyDataSetChanged ();
+            }
+        };
     }
 }

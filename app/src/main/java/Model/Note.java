@@ -4,10 +4,21 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Note implements Parcelable {
-    private String title, day, time, content, id;
-    private boolean done;
+    private String title, day, time, content, id, image;
+    private boolean done, pin;
 
     public Note() {
+    }
+
+    public Note(String title, String day, String time, String content, String id, String image, boolean done, boolean pin) {
+        this.title = title;
+        this.day = day;
+        this.time = time;
+        this.content = content;
+        this.id = id;
+        this.image = image;
+        this.done = done;
+        this.pin = pin;
     }
 
     public Note(String title, String day, String time, String content) {
@@ -16,7 +27,9 @@ public class Note implements Parcelable {
         this.time = time;
         this.content = content;
         this.id = "";
+        this.pin = false;
         this.done = false;
+        this.image = "";
     }
 
     protected Note(Parcel in) {
@@ -25,7 +38,9 @@ public class Note implements Parcelable {
         time = in.readString ();
         content = in.readString ();
         id = in.readString ();
+        image = in.readString ();
         done = in.readByte () != 0;
+        pin = in.readByte () != 0;
     }
 
     public static final Creator<Note> CREATOR = new Creator<Note> () {
@@ -80,12 +95,28 @@ public class Note implements Parcelable {
         this.id = id;
     }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public boolean isCheck() {
         return done;
     }
 
     public void setCheck(boolean done) {
         this.done = done;
+    }
+
+    public boolean isPin() {
+        return pin;
+    }
+
+    public void setPin(boolean pin) {
+        this.pin = pin;
     }
 
     @Override
@@ -100,7 +131,9 @@ public class Note implements Parcelable {
         parcel.writeString (time);
         parcel.writeString (content);
         parcel.writeString (id);
+        parcel.writeString (image);
         parcel.writeByte ((byte) (done ? 1 : 0));
+        parcel.writeByte ((byte) (pin ? 1 : 0));
     }
 
     @Override
@@ -111,7 +144,9 @@ public class Note implements Parcelable {
                 ", time='" + time + '\'' +
                 ", content='" + content + '\'' +
                 ", id='" + id + '\'' +
+                ", image='" + image + '\'' +
                 ", done=" + done +
+                ", pin=" + pin +
                 '}';
     }
 }

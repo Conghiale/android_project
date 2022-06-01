@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.DatePicker;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -35,6 +36,7 @@ public class AddNote extends AppCompatActivity {
     private User userCurrent;
 
     private SharedPreferences sharedPreferences;
+    private Uri uri;
 
     private AddNoteBinding addNoteBinding;
     private static final int MY_REQUEST_CODE = 1000;
@@ -48,7 +50,7 @@ public class AddNote extends AppCompatActivity {
                         Intent data = result.getData ();
                         if(data == null)
                             return;
-                        Uri uri = data.getData ();
+                        uri = data.getData ();
 
                         try {
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap (getContentResolver (), uri);
@@ -100,7 +102,7 @@ public class AddNote extends AppCompatActivity {
 
                 Calendar calendar = Calendar.getInstance();
                 new DatePickerDialog (AddNote.this, (datePicker, year, month, day) ->
-                        addNoteBinding.addEtDay.setText( day + "/" + (month + 1) + "/" + year), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+                    addNoteBinding.addEtDay.setText( day + "/" + (month + 1) + "/" + year), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
             }
         });
     }
@@ -118,7 +120,7 @@ public class AddNote extends AppCompatActivity {
                     }
 
                     String minute = String.valueOf(selectedMinute);
-                    if (selectedHour < 10) {
+                    if (selectedMinute < 10) {
                         minute = '0' + minute;
                     }
                     addNoteBinding.addEtTime.setText( hour + ":" + minute);
@@ -138,7 +140,6 @@ public class AddNote extends AppCompatActivity {
         if(getIntent ().getStringExtra ("Function").equals ("UPDATE")){
             Note oldNote = getIntent ().getParcelableExtra ("OldNote");
 
-            Log.e ("TAG11", "note: " + oldNote.toString ());
             if(addNoteBinding.btnSave.getVisibility () == View.VISIBLE)
                 addNoteBinding.btnSave.setVisibility (View.GONE);
 
@@ -155,13 +156,18 @@ public class AddNote extends AppCompatActivity {
     }
 
     private void buttonSave() {
-        Note note = new Note ();
+        String title = addNoteBinding.addEtTitle.getText ().toString ();
+        String day = addNoteBinding.addEtDay.getText ().toString ();
+        String time = addNoteBinding.addEtTime.getText ().toString ();
+        String content = addNoteBinding.addEtContent.getText ().toString ();
+        Note note;
+        if(uri == null)
+            note = new Note (title, day, time, content);
+        else{
+            String image = uri.toString ();
+            note = new Note (title, day, time, content, "", image, false, false);
+        }
 
-        note.setTitle (addNoteBinding.addEtTitle.getText ().toString ());
-        note.setDay (addNoteBinding.addEtDay.getText ().toString ());
-        note.setTime (addNoteBinding.addEtTime.getText ().toString ());
-        note.setContent (addNoteBinding.addEtContent.getText ().toString ());
-        //ImageView
 
         Intent intent = new Intent ();
         intent.putExtra ("NOTE", note);
@@ -183,36 +189,6 @@ public class AddNote extends AppCompatActivity {
         setResult (RESULT_OK, intent);
         finish ();
     }
-
-//    private void requestPermission() {
-//        PermissionListener permissionlistener = new PermissionListener() {
-//            @Override
-//            public void onPermissionGranted() {
-//                Toast.makeText(AddNote.this, "Permission Granted", Toast.LENGTH_SHORT).show();
-//                openImagePicker();
-//            }
-//
-//            @Override
-//            public void onPermissionDenied(List<String> deniedPermissions) {
-//                Toast.makeText(AddNote.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
-//            }
-//        };
-//
-//        TedPermission.create()
-//                .setPermissionListener(permissionlistener)
-//                .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
-//                .setPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                .check();    }
-//
-//    private void openImagePicker() {
-//        TedImagePicker.with(this)
-//                .mediaType (MediaType.IMAGE)
-////                .mediaType (MediaType.VIDEO)
-//                .start(uri -> {
-//                    addNoteBinding.addIvPicture.setImageURI (uri);
-//                });
-//
-//    }
 
     private void onClickRequesPermission() {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
