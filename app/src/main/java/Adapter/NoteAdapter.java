@@ -73,11 +73,11 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         holder.tvDayTime.setText (note.getDay () + " " + note.getTime ());
         holder.tvContent.setText (note.getContent ());
         holder.cbDone.setChecked (note.isCheck ());
-        if (!note.getImage ().isEmpty ()){
-            Log.e ("TAG200", "image: " + note.getImage ());
-            Uri uri = Uri.parse (note.getImage ());
-            holder.ivPicture.setImageURI (uri);
-        }
+//        if (!note.getImage ().isEmpty ()){
+//            Log.e ("TAG200", "image: " + note.getImage ());
+//            Uri uri = Uri.parse (note.getImage ());
+//            holder.ivPicture.setImageURI (uri);
+//        }
     }
 
     @Override
