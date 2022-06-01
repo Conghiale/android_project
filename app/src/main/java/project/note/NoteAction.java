@@ -10,6 +10,7 @@ import java.util.HashMap;
 import Model.Note;
 
 public class NoteAction {
+
     public static void readPinNote(ArrayList<Note> list){
         if(list.get (0).isPin ())
             return;
@@ -21,38 +22,27 @@ public class NoteAction {
             }
         }
 
-        sortDayTime (list);
-    }
-
-    public static void pinNote(ArrayList<Note> list, Note pNote, Context context){
-        if(list.get (0).equals (pNote)){
-            if(list.get (0).isPin ())
-                Toast.makeText (context, "Pinned", Toast.LENGTH_SHORT).show ();
-            else{
-                pNote.setPin (true);
-                updatePinNote(pNote);
-            }
-        }else{
-            if(list.get (0).isPin ()) {
-                list.get (0).setPin (false);
-                updatePinNote (list.get (0));
-            }
-            pNote.setPin (true);
-            updatePinNote(pNote);
-        }
-
-        for (Note note : list) {
-            if(note.isPin ())
-                permutationNote(note, list.get (0));
-        }
-
-        sortDayTime (list);
+        sortDayTime (list, false);
     }
 
     public static void removePinNote (ArrayList<Note> list, Note note){
         note.setPin (false);
         updatePinNote (note);
-        sortDayTime (list);
+        int index = 0;
+        for(int i = 0; i < list.size (); i++){
+            if(list.get (i).equals (note)){
+                index = i;
+                break;
+            }
+        }
+
+        for (int i = index; i < list.size (); i++) {
+            if(list.get (i+1).isPin ())
+                permutationNote(list.get (i), list.get (i+1));
+            else
+                break;
+        }
+        sortDayTime (list, false);
     }
 
     public static void permutationNote(Note note1, Note note2){
@@ -86,16 +76,23 @@ public class NoteAction {
         .addOnFailureListener (e -> Log.e ("TAG", "updatePinNote Failure"));
     }
 
-    public static void sortDayTime(ArrayList<Note> list){
+    public static void sortDayTime(ArrayList<Note> list, boolean pin){
         boolean isSort = false;
         boolean sort = false;
-        int startSort = -1;
+        int startSort = 0;
         int size = list.size ();
 
-        if(list.get (0).isPin ())
-            startSort = 1;
-        else
-            startSort = 0;
+        if(!pin){
+            for (int i = 0; i < size; i++) {
+                if(list.get (i).isPin ())
+                    continue;
+                else {
+                    startSort = i;
+                    break;
+                }
+            }
+        }
+
 
         while (!sort) {
             isSort = false;
@@ -158,5 +155,37 @@ public class NoteAction {
             return -1;
         else
             return 0;
+    }
+
+    public static void pinNote(ArrayList<Note> list, Note pNote, Context context){
+        if(pNote.isPin ())
+            Toast.makeText (context, "Pinned", Toast.LENGTH_SHORT).show ();
+        else{
+            pNote.setPin (true);
+            updatePinNote(pNote);
+        }
+
+        ArrayList<Note> tmpList = new ArrayList<> ();
+        for (Note tmpNote : list) {
+            if(tmpNote.isPin ())
+                tmpList.add (tmpNote);
+        }
+
+        sortDayTime (tmpList, true);
+        for (int i = 0; i < tmpList.size (); i++) {
+            if(list.get (i).equals (tmpList.get (i)))
+                continue;
+            else{
+                for (Note note : list) {
+                    if(note.getId ().equals (tmpList.get (i).getId ())){
+                        permutationNote(list.get (i), note);
+                        break;
+                    }
+
+                }
+            }
+        }
+
+        sortDayTime (list, false);
     }
 }

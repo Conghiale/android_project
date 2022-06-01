@@ -92,7 +92,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     public void add(@Nullable Note note) {
 
         listNote.add(note);
-        NoteAction.sortDayTime (listNote);
+        NoteAction.sortDayTime (listNote, false);
         notifyDataSetChanged ();
         //Push Data to Firebase
         pushDataToFirebase(note);
@@ -167,7 +167,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
         listNote.get (pos).setContent (upNote.getContent ());
         //ImageView
 
-        NoteAction.sortDayTime (listNote);
+        NoteAction.sortDayTime (listNote, false);
         Log.e ("TAG20", "editData: read sortDayTime.");
         notifyDataSetChanged ();
         //notifyItemChanged (pos);
