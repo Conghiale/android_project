@@ -12,8 +12,10 @@ import Model.Note;
 public class NoteAction {
 
     public static void readPinNote(ArrayList<Note> list){
-        if(list.get (0).isPin ())
-            return;
+        if(list.size () > 0){
+            if(list.get (0).isPin ())
+                return;
+        }
 
         for(int i = 1; i < list.size (); i++){
             if(list.get (i).isPin ()){
